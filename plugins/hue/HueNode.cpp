@@ -13,9 +13,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * NanoleafNode.cpp
- * A Nanoleaf node
- * Copyright (C) 2017 Peter Newman
+ * HueNode.cpp
+ * A Hue node
+ * Copyright (C) 2017 Peter Newman, forked by Johan Nilsson for testing with Philips Hue
  */
 
 #include <math.h>
@@ -27,11 +27,11 @@
 #include "ola/Constants.h"
 #include "ola/Logging.h"
 #include "ola/network/SocketAddress.h"
-#include "plugins/nanoleaf/NanoleafNode.h"
+#include "plugins/hue/HueNode.h"
 
 namespace ola {
 namespace plugin {
-namespace nanoleaf {
+namespace hue {
 
 using ola::network::IPV4SocketAddress;
 using ola::network::UDPSocket;
@@ -39,11 +39,11 @@ using std::auto_ptr;
 using std::vector;
 
 /*
- * Create a new Nanoleaf node.
+ * Create a new Hue node.
  * @param ss a SelectServerInterface to use
  * @param socket a UDPSocket or Null. Ownership is transferred.
  */
-NanoleafNode::NanoleafNode(ola::io::SelectServerInterface *ss,
+HueNode::HueNode(ola::io::SelectServerInterface *ss,
                            std::vector<uint8_t> panels,
                            ola::network::UDPSocketInterface *socket)
     : m_running(false),
@@ -58,7 +58,7 @@ NanoleafNode::NanoleafNode(ola::io::SelectServerInterface *ss,
 /*
  * Cleanup.
  */
-NanoleafNode::~NanoleafNode() {
+HueNode::~HueNode() {
   Stop();
 }
 
@@ -66,7 +66,7 @@ NanoleafNode::~NanoleafNode() {
 /*
  * Start this node.
  */
-bool NanoleafNode::Start() {
+bool HueNode::Start() {
   if (m_running) {
     return false;
   }
@@ -82,7 +82,7 @@ bool NanoleafNode::Start() {
 /*
  * Stop this node.
  */
-bool NanoleafNode::Stop() {
+bool HueNode::Stop() {
   if (!m_running) {
     return false;
   }
@@ -97,38 +97,38 @@ bool NanoleafNode::Stop() {
 /*
  * Send some DMX data
  */
-bool NanoleafNode::SendDMX(const IPV4SocketAddress &target,
+bool HueNode::SendDMX(const IPV4SocketAddress &target,
                            const DmxBuffer &buffer) {
   if (!buffer.Size()) {
     OLA_DEBUG << "Not sending 0 length packet";
     return true;
-  } else if (buffer.Size() < NANOLEAF_SLOTS_PER_PANEL) {
-    OLA_INFO << "Insufficient DMX data, required " << NANOLEAF_SLOTS_PER_PANEL
+  } else if (buffer.Size() < HUE_SLOTS_PER_PANEL) {
+    OLA_INFO << "Insufficient DMX data, required " << HUE_SLOTS_PER_PANEL
              << ", got " << buffer.Size();
   }
 
   uint8_t panel_count = std::min(
       static_cast<uint8_t>(m_panels.size()),
-      static_cast<uint8_t>(floor(buffer.Size() / NANOLEAF_SLOTS_PER_PANEL)));
+      static_cast<uint8_t>(floor(buffer.Size() / HUE_SLOTS_PER_PANEL)));
 
   m_output_queue.Clear();
   m_output_stream << panel_count;
   for (uint8_t i = 0; i < panel_count; i++) {
-    m_output_stream << m_panels[i] << NANOLEAF_FRAME_COUNT;
-    m_output_stream.Write(buffer.GetRaw() + (i * NANOLEAF_SLOTS_PER_PANEL),
-                          NANOLEAF_SLOTS_PER_PANEL);
-    m_output_stream << NANOLEAF_WHITE_LEVEL << NANOLEAF_TRANSITION_TIME;
+    m_output_stream << m_panels[i] << HUE_FRAME_COUNT;
+    m_output_stream.Write(buffer.GetRaw() + (i * HUE_SLOTS_PER_PANEL),
+                          HUE_SLOTS_PER_PANEL);
+    m_output_stream << HUE_WHITE_LEVEL << HUE_TRANSITION_TIME;
   }
 
   // m_output_queue.Dump(&std::cerr);
 
   bool ok = m_socket->SendTo(&m_output_queue, target);
   if (!ok) {
-    OLA_WARN << "Failed to send Nanoleaf packet";
+    OLA_WARN << "Failed to send Hue packet";
   }
 
   if (!m_output_queue.Empty()) {
-    OLA_WARN << "Failed to send complete Nanoleaf packet";
+    OLA_WARN << "Failed to send complete Hue packet";
     m_output_queue.Clear();
   }
   return ok;
@@ -138,7 +138,7 @@ bool NanoleafNode::SendDMX(const IPV4SocketAddress &target,
 /*
  * Called when there is data on this socket. Right now we discard all packets.
  */
-void NanoleafNode::SocketReady() {
+void HueNode::SocketReady() {
   uint8_t packet[1500];
   ssize_t packet_size = sizeof(packet);
   ola::network::IPV4SocketAddress source;
@@ -149,14 +149,14 @@ void NanoleafNode::SocketReady() {
     return;
   }
 
-  OLA_INFO << "Received Nanoleaf packet from " << source << ", discarding";
+  OLA_INFO << "Received Hue packet from " << source << ", discarding";
 }
 
 
 /*
  * Setup the networking components.
  */
-bool NanoleafNode::InitNetwork() {
+bool HueNode::InitNetwork() {
   std::auto_ptr<ola::network::UDPSocketInterface> socket(m_socket.release());
 
   if (!socket.get()) {
@@ -169,16 +169,16 @@ bool NanoleafNode::InitNetwork() {
   }
 
   // if (!socket->Bind(IPV4SocketAddress(IPV4Address::WildCard(),
-  //                   NANOLEAF_PORT))) {
+  //                   HUE_PORT))) {
   //   return false;
   // }
 
   // Do we need to call this if we don't bind?
-  socket->SetOnData(NewCallback(this, &NanoleafNode::SocketReady));
+  socket->SetOnData(NewCallback(this, &HueNode::SocketReady));
   m_ss->AddReadDescriptor(socket.get());
   m_socket.reset(socket.release());
   return true;
 }
-}  // namespace nanoleaf
+}  // namespace hue
 }  // namespace plugin
 }  // namespace ola

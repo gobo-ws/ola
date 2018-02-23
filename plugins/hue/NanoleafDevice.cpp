@@ -13,9 +13,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * NanoleafDevice.cpp
- * A Nanoleaf Device.
- * Copyright (C) 2017 Peter Newman
+ * HueDevice.cpp
+ * A Hue Device.
+ * Copyright (C) 2017 Peter Newman, forked by Johan Nilsson for testing with Philips Hue
  */
 
 #include <memory>
@@ -33,12 +33,12 @@
 #include "olad/PluginAdaptor.h"
 #include "olad/Port.h"
 #include "olad/Preferences.h"
-#include "plugins/nanoleaf/NanoleafDevice.h"
-#include "plugins/nanoleaf/NanoleafPort.h"
+#include "plugins/hue/HueDevice.h"
+#include "plugins/hue/HuePort.h"
 
 namespace ola {
 namespace plugin {
-namespace nanoleaf {
+namespace hue {
 
 using ola::network::IPV4Address;
 using ola::network::IPV4SocketAddress;
@@ -47,14 +47,14 @@ using std::string;
 using std::vector;
 
 /*
- * Create a new Nanoleaf Device
+ * Create a new Hue Device
  */
-NanoleafDevice::NanoleafDevice(
+HueDevice::HueDevice(
     AbstractPlugin *owner,
     Preferences *preferences,
     PluginAdaptor *plugin_adaptor,
     const ola::network::IPV4Address &controller)
-    : Device(owner, "Nanoleaf Device"),
+    : Device(owner, "Hue Device"),
       m_node(NULL),
       m_preferences(preferences),
       m_plugin_adaptor(plugin_adaptor),
@@ -67,7 +67,7 @@ NanoleafDevice::NanoleafDevice(
  * Start this device
  * @return true on success, false on failure
  */
-bool NanoleafDevice::StartHook() {
+bool HueDevice::StartHook() {
   vector<uint8_t> panels;
   vector<string> panel_list;
   StringSplit(m_preferences->GetValue(PanelsKey()), &panel_list, ",");
@@ -91,7 +91,7 @@ bool NanoleafDevice::StartHook() {
     return false;
   }
 
-  m_node = new NanoleafNode(m_plugin_adaptor, panels);
+  m_node = new HueNode(m_plugin_adaptor, panels);
 
   if (!m_node->Start()) {
     delete m_node;
@@ -104,27 +104,27 @@ bool NanoleafDevice::StartHook() {
     ip_port = DEFAULT_STREAMING_PORT;
   }
   IPV4SocketAddress socket_address = IPV4SocketAddress(m_controller, ip_port);
-  AddPort(new NanoleafOutputPort(this, socket_address, m_node, 0));
+  AddPort(new HueOutputPort(this, socket_address, m_node, 0));
   return true;
 }
 
 
-string NanoleafDevice::DeviceId() const {
+string HueDevice::DeviceId() const {
   return m_controller.ToString();
 }
 
 
-string NanoleafDevice::IPPortKey() const {
+string HueDevice::IPPortKey() const {
   return m_controller.ToString() + "-port";
 }
 
 
-string NanoleafDevice::PanelsKey() const {
+string HueDevice::PanelsKey() const {
   return m_controller.ToString() + "-panels";
 }
 
 
-void NanoleafDevice::SetDefaults() {
+void HueDevice::SetDefaults() {
   // Set device options
   m_preferences->SetDefaultValue(PanelsKey(), StringValidator(), "");
   m_preferences->SetDefaultValue(
@@ -138,7 +138,7 @@ void NanoleafDevice::SetDefaults() {
 /**
  * Stop this device. This is called before the ports are deleted
  */
-void NanoleafDevice::PrePortStop() {
+void HueDevice::PrePortStop() {
   m_node->Stop();
 }
 
@@ -146,10 +146,10 @@ void NanoleafDevice::PrePortStop() {
 /*
  * Stop this device
  */
-void NanoleafDevice::PostPortStop() {
+void HueDevice::PostPortStop() {
   delete m_node;
   m_node = NULL;
 }
-}  // namespace nanoleaf
+}  // namespace hue
 }  // namespace plugin
 }  // namespace ola

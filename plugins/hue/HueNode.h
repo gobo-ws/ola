@@ -13,13 +13,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * NanoleafNode.h
- * Header file for the NanoleafNode class.
- * Copyright (C) 2017 Peter Newman
+ * HueNode.h
+ * Header file for the HueNode class.
+ * Copyright (C) 2017 Peter Newman, forked by Johan Nilsson for testing with Philips Hue
  */
 
-#ifndef PLUGINS_NANOLEAF_NANOLEAFNODE_H_
-#define PLUGINS_NANOLEAF_NANOLEAFNODE_H_
+#ifndef PLUGINS_HUE_HUENODE_H_
+#define PLUGINS_HUE_HUENODE_H_
 
 #include <memory>
 #include <vector>
@@ -35,14 +35,14 @@
 
 namespace ola {
 namespace plugin {
-namespace nanoleaf {
+namespace hue {
 
-class NanoleafNode {
+class HueNode {
  public:
-    NanoleafNode(ola::io::SelectServerInterface *ss,
+    HueNode(ola::io::SelectServerInterface *ss,
                  std::vector<uint8_t> panels,
                  ola::network::UDPSocketInterface *socket = NULL);
-    virtual ~NanoleafNode();
+    virtual ~HueNode();
 
     bool Start();
     bool Stop();
@@ -63,14 +63,14 @@ class NanoleafNode {
     void SocketReady();
     bool InitNetwork();
 
-    static const uint8_t NANOLEAF_FRAME_COUNT = 0x01;
-    static const uint8_t NANOLEAF_WHITE_LEVEL = 0x00;
-    static const uint8_t NANOLEAF_TRANSITION_TIME = 0x01;
-    static const uint8_t NANOLEAF_SLOTS_PER_PANEL = 3;
+    static const uint8_t HUE_FRAME_COUNT = 0x01;
+    static const uint8_t HUE_WHITE_LEVEL = 0x00;
+    static const uint8_t HUE_TRANSITION_TIME = 0x01;
+    static const uint8_t HUE_SLOTS_PER_PANEL = 3;
 
-    DISALLOW_COPY_AND_ASSIGN(NanoleafNode);
+    DISALLOW_COPY_AND_ASSIGN(HueNode);
 };
-}  // namespace nanoleaf
+}  // namespace hue
 }  // namespace plugin
 }  // namespace ola
-#endif  // PLUGINS_NANOLEAF_NANOLEAFNODE_H_
+#endif  // PLUGINS_HUE_HUENODE_H_

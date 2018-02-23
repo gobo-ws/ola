@@ -13,13 +13,13 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * NanoleafDevice.h
- * Interface for the Nanoleaf device
- * Copyright (C) 2017 Peter Newman
+ * HueDevice.h
+ * Interface for the Huedevice
+ * Copyright (C) 2017 Peter Newman, forked by Johan Nilsson for testing with Philips Hue
  */
 
-#ifndef PLUGINS_NANOLEAF_NANOLEAFDEVICE_H_
-#define PLUGINS_NANOLEAF_NANOLEAFDEVICE_H_
+#ifndef PLUGINS_HUE_HUEDEVICE_H_
+#define PLUGINS_HUE_HUEDEVICE_H_
 
 #include <string>
 #include <vector>
@@ -29,11 +29,11 @@
 
 namespace ola {
 namespace plugin {
-namespace nanoleaf {
+namespace hue {
 
-class NanoleafDevice: public ola::Device {
+class HueDevice: public ola::Device {
  public:
-    NanoleafDevice(AbstractPlugin *owner,
+    HueDevice(AbstractPlugin *owner,
                    class Preferences *preferences,
                    class PluginAdaptor *plugin_adaptor,
                    const ola::network::IPV4Address &controller);
@@ -46,7 +46,7 @@ class NanoleafDevice: public ola::Device {
     void PostPortStop();
 
  private:
-    class NanoleafNode *m_node;
+    class HueNode *m_node;
     class Preferences *m_preferences;
     class PluginAdaptor *m_plugin_adaptor;
     const ola::network::IPV4Address m_controller;
@@ -57,7 +57,7 @@ class NanoleafDevice: public ola::Device {
 
     static const uint16_t DEFAULT_STREAMING_PORT = 60221;
 };
-}  // namespace nanoleaf
+}  // namespace hue
 }  // namespace plugin
 }  // namespace ola
-#endif  // PLUGINS_NANOLEAF_NANOLEAFDEVICE_H_
+#endif  // PLUGINS_HUE_HUEDEVICE_H_

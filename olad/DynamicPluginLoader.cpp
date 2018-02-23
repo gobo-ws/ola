@@ -47,6 +47,10 @@
 #include "plugins/gpio/GPIOPlugin.h"
 #endif  // USE_GPIO
 
+#ifdef USE_HUE
+#include "plugins/hue/HuePlugin.h"
+#endif  // USE_HUE
+
 #ifdef USE_KARATE
 #include "plugins/karate/KaratePlugin.h"
 #endif  // USE_KARATE
@@ -166,6 +170,11 @@ void DynamicPluginLoader::PopulatePlugins() {
 #ifdef USE_GPIO
   m_plugins.push_back(new ola::plugin::gpio::GPIOPlugin(m_plugin_adaptor));
 #endif  // USE_GPIO
+
+#ifdef USE_HUE
+  m_plugins.push_back(
+      new ola::plugin::hue::HuePlugin(m_plugin_adaptor));
+#endif  // USE_HUE
 
 #ifdef USE_KARATE
   m_plugins.push_back(
